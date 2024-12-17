@@ -14,7 +14,7 @@ class Model
             $this->db = new PDO(
                 "mysql:host=localhost;dbname=pdo_crud", // Update this with your actual DB credentials
                 "root", // Your database username
-                "", // Your database password
+                "admin123", // Your database password
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
