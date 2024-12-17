@@ -9,7 +9,7 @@ class Database
     private $host = 'localhost';
     private $db_name = 'pdo_crud';
     private $username = 'root';
-    private $password = '';
+    private $password = 'admin123';
     private static $pdo = null;
 
     public function connect()
