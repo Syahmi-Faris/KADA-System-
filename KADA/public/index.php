@@ -51,10 +51,18 @@ switch (true) {
         break;
 
     case ($uri === 'member-application' && $method === 'GET'):
-        $controller->memberApplicationForm();
+        $controller->memberApplicationPage1();
         break;
         
-    case ($uri === 'submit-application' && $method === 'POST'):
+    case ($uri === 'member-application/page2' && $method === 'POST'):
+        $controller->memberApplicationPage2();
+        break;
+        
+    case ($uri === 'member-application/page3' && $method === 'POST'):
+        $controller->memberApplicationPage3();
+        break;
+        
+    case ($uri === 'member-application/submit' && $method === 'POST'):
         $controller->submitApplication();
         break;
         
