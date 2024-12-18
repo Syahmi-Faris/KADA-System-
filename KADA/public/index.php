@@ -50,7 +50,7 @@ switch (true) {
         $controller->delete($matches[1]);
         break;
 
-    case ($uri === 'member-application' && $method === 'GET'):
+    case ($uri === 'member-application/page1' && $method === 'GET'):
         $controller->memberApplicationPage1();
         break;
         
@@ -64,6 +64,14 @@ switch (true) {
         
     case ($uri === 'member-application/submit' && $method === 'POST'):
         $controller->submitApplication();
+        break;
+
+    case ($uri === 'review' && $method === 'GET'):
+        $controller->reviewApplications();
+        break;
+
+    case (preg_match('/update-application-status\/(\d+)\/(accepted|rejected)/', $uri, $matches) && $method === 'POST'):
+        $controller->updateApplicationStatus($matches[1],$matches[2]);
         break;
         
     default:
