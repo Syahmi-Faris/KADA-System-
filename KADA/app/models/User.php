@@ -5,14 +5,12 @@ use App\Core\Model;
 
 class User extends Model
 {
-    protected $table = 'member_application';
-
     /**
      * Fetch all users.
      */
     public function all()
     {
-        $stmt = $this->getConnection()->query("SELECT * FROM {$this->table}");
+        $stmt = $this->getConnection()->query("SELECT * FROM users");
         return $stmt->fetchAll();
     }
 
@@ -21,12 +19,12 @@ class User extends Model
      */
     public function create($data)
     {
-        $sql = "INSERT INTO {$this->table} (username, email, password) VALUES (:username, :email, :password)";
+        $sql = "INSERT INTO users (username, password,email) VALUES (:username, :password, :email)";
         $stmt = $this->getConnection()->prepare($sql);
         return $stmt->execute([
             ':username' => $data['username'],
-            ':email'    => $data['email'],
-            ':password' => $data['password']
+            ':password' => $data['password'],
+            ':email'    => $data['email']
         ]);
     }
 
@@ -35,7 +33,7 @@ class User extends Model
      */
     public function find($id)
     {
-        $stmt = $this->getConnection()->prepare("SELECT * FROM {$this->table} WHERE id = :id");
+        $stmt = $this->getConnection()->prepare("SELECT * FROM users WHERE id = :id");
         $stmt->execute([':id' => $id]);
         return $stmt->fetch();
     }
@@ -45,7 +43,7 @@ class User extends Model
      */
     public function update($id, $data)
     {
-        $sql = "UPDATE {$this->table} SET username = :username, email = :email WHERE id = :id";
+        $sql = "UPDATE users SET username = :username, email = :email WHERE id = :id";
         $stmt = $this->getConnection()->prepare($sql);
         return $stmt->execute([
             ':username' => $data['username'],
@@ -59,7 +57,23 @@ class User extends Model
      */
     public function delete($id)
     {
-        $stmt = $this->getConnection()->prepare("DELETE FROM {$this->table} WHERE id = :id");
+        $stmt = $this->getConnection()->prepare("DELETE FROM users WHERE id = :id");
         return $stmt->execute([':id' => $id]);
     }
+
+    public function getApplications()
+    {
+        $stmt = $this->getConnection()->query("SELECT * FROM member_application WHERE status = 'pending' || status = 'accepted'");
+        return $stmt->fetchAll();
+    }
+
+    public function updateApplicationStatus($applicationId, $status)
+    {
+        $stmt = $this->getConnection()->prepare("UPDATE member_application SET status = :status WHERE id = :id");
+        $stmt->execute([
+            ':status' => $status,
+            ':id' => $applicationId
+        ]);
+    }
+
 }
