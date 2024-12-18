@@ -16,14 +16,13 @@ class UserController extends Controller
     public function index()
     {
         session_start();
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit();
+        }
 
-        // Fetch member applications
-        $stmt = $this->user->getConnection()->prepare("SELECT * FROM member_application");
-        $stmt->execute();
-        $applications = $stmt->fetchAll();
-
-        // Pass data to the view
-        $this->view('users/index', ['applications' => $applications]);
+        $users = $this->user->all();
+        $this->view('users/index', compact('users'));
     }
 
     public function login()
@@ -106,8 +105,31 @@ class UserController extends Controller
         }
     }
 
+    public function model($model)
+    {
+        // Path to the model file
+        $modelFile = '../app/models/' . $model . '.php';
+    
+        // Check if the model file exists
+        if (file_exists($modelFile)) {
+            require_once $modelFile;
+    
+            // Include the namespace when instantiating the class
+            $fullyQualifiedClassName = 'App\Models\\' . $model;
+            if (class_exists($fullyQualifiedClassName)) {
+                return new $fullyQualifiedClassName();
+            } else {
+                die("Class '$fullyQualifiedClassName' not found.");
+            }
+        } else {
+            // If model file does not exist, throw an error
+            die("Model file '$modelFile' not found.");
+        }
+    }
+
     public function create()
     {
+        // Simply load the view for creating a user
         $this->view('users/create');
     }
 
@@ -208,12 +230,12 @@ class UserController extends Controller
             // Insert data into 'member_application' table
             $stmt = $this->user->getConnection()->prepare("
                 INSERT INTO member_application (
-                    nama, no_kp, taraf_perkahwinan, jantina, agama, bangsa, 
+                    nama, no_kp, jantina, agama, bangsa, 
                     alamat_rumah, poskod, negeri, no_tel_bimbit, no_tel_rumah, 
                     gaji_bulanan, nama_pewaris, hubungan_pewaris, no_kp_pewaris, 
                     fee_masuk, modah_syer, receipt_path
                 ) VALUES (
-                    :nama, :no_kp, :taraf_perkahwinan, :jantina, :agama, :bangsa, 
+                    :nama, :no_kp, :jantina, :agama, :bangsa, 
                     :alamat_rumah, :poskod, :negeri, :no_tel_bimbit, :no_tel_rumah, 
                     :gaji_bulanan, :nama_pewaris, :hubungan_pewaris, :no_kp_pewaris, 
                     :fee_masuk, :modah_syer, :receipt_path
@@ -222,7 +244,6 @@ class UserController extends Controller
             $stmt->execute([
                 ':nama' => $data['nama'],
                 ':no_kp' => $data['no_kp'],
-                ':taraf_perkahwinan' => $data['taraf_perkahwinan'],
                 ':jantina' => $data['jantina'],
                 ':agama' => $data['agama'],
                 ':bangsa' => $data['bangsa'],
@@ -241,7 +262,7 @@ class UserController extends Controller
             ]);
 
             // Clear session and show success
-            session_destroy();
+            
             echo "<script>
                 alert('Permohonan berjaya dihantar.Sila menunggu 2-3 hari bekerja untuk kelulusan.');
                 window.location.href = '/';
@@ -250,4 +271,20 @@ class UserController extends Controller
             $this->view('users/member_application_page3', ['errors' => $errors]);
         }
     }
+    public function reviewApplications()
+    {
+        $user = $this->model('User');
+        $applications = $user->getApplications(); // Get all pending applications
+        $this->view('users/review_applications', ['applications' => $applications]);
+    }
+
+    public function updateApplicationStatus($applicationId, $status)
+    {
+        $user = $this->model('User');
+        $user->updateApplicationStatus($applicationId, $status);
+        ob_clean();
+        header('Location: users/review_applications'); // Redirect back to review page
+        exit;
+    }
+
 }
