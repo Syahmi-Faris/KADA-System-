@@ -12,8 +12,6 @@
         <h1 class="text-center">KADA COOPERATIVE GENERAL WEBSITE</h1>
         <hr>
         <h3 class="text-center mb-4">Member Applications</h3>
-
-        <!-- Table for Member Applications -->
         <table class="table table-bordered table-hover text-center">
             <thead class="table-dark">
                 <tr>
