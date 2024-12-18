@@ -14,16 +14,18 @@ class UserController extends Controller
     }
 
     public function index()
-    {
-        session_start();
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
+{
+    session_start();
 
-        $users = $this->user->all();
-        $this->view('users/index', compact('users'));
-    }
+    // Fetch member applications
+    $stmt = $this->user->getConnection()->prepare("SELECT * FROM member_application");
+    $stmt->execute();
+    $applications = $stmt->fetchAll();
+
+    // Pass data to the view
+    $this->view('users/index', ['applications' => $applications]);
+}
+
 
     public function login()
     {
@@ -107,7 +109,6 @@ class UserController extends Controller
 
     public function create()
     {
-        // Simply load the view for creating a user
         $this->view('users/create');
     }
 
