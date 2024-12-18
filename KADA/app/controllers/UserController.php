@@ -14,18 +14,17 @@ class UserController extends Controller
     }
 
     public function index()
-{
-    session_start();
+    {
+        session_start();
 
-    // Fetch member applications
-    $stmt = $this->user->getConnection()->prepare("SELECT * FROM member_application");
-    $stmt->execute();
-    $applications = $stmt->fetchAll();
+        // Fetch member applications
+        $stmt = $this->user->getConnection()->prepare("SELECT * FROM member_application");
+        $stmt->execute();
+        $applications = $stmt->fetchAll();
 
-    // Pass data to the view
-    $this->view('users/index', ['applications' => $applications]);
-}
-
+        // Pass data to the view
+        $this->view('users/index', ['applications' => $applications]);
+    }
 
     public function login()
     {
