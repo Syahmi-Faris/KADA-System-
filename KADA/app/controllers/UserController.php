@@ -161,59 +161,93 @@ class UserController extends Controller
         exit();
     }
 
-    public function memberApplicationForm()
+    public function memberApplicationPage1()
     {
-        $this->view('users/member_application');
+        session_start();
+        $data = $_SESSION['page1'] ?? [];
+        $this->view('users/member_application_page1', ['data' => $data]);
+    }
+
+    public function memberApplicationPage2()
+    {
+        session_start();
+        $_SESSION['page1'] = $_POST; 
+        $data = $_SESSION['page2'] ?? [];
+        $this->view('users/member_application_page2', ['data' => $data]);
+    }
+
+    public function memberApplicationPage3()
+    {
+        session_start();
+        $_SESSION['page2'] = $_POST; 
+        $data = $_SESSION['page3'] ?? [];
+        $this->view('users/member_application_page3', ['data' => $data]);
     }
 
     public function submitApplication()
     {
-        // Validate input and file upload
-        $fullName = trim($_POST['full_name']);
-        $email = trim($_POST['email']);
-        $phone = trim($_POST['phone']);
-        $address = trim($_POST['address']);
+        session_start();
+        $_SESSION['page3'] = $_POST; 
+
+        $data = array_merge($_SESSION['page1'], $_SESSION['page2'], $_SESSION['page3']);
         $errors = [];
 
-        if (empty($fullName)) $errors[] = "Full Name is required.";
-        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Valid Email is required.";
-        if (empty($phone)) $errors[] = "Phone is required.";
-        if (empty($address)) $errors[] = "Address is required.";
-
-        // Handle file upload
-        if ($_FILES['receipt']['error'] == 0) {
+        // File upload handling
+        $receiptPath = '';
+        if ($_FILES['receipt']['error'] === 0) {
             $uploadDir = __DIR__ . '/../../public/uploads/';
-            $receiptName = time() . '_' . basename($_FILES['receipt']['name']);
-            $receiptPath = $uploadDir . $receiptName;
+            $fileName = time() . '_' . basename($_FILES['receipt']['name']);
+            $receiptPath = $fileName;
 
-            if (!move_uploaded_file($_FILES['receipt']['tmp_name'], $receiptPath)) {
+            if (!move_uploaded_file($_FILES['receipt']['tmp_name'], $uploadDir . $fileName)) {
                 $errors[] = "Failed to upload receipt.";
             }
-        } else {
-            $errors[] = "Receipt upload is required.";
         }
 
         if (empty($errors)) {
-            // Save to database
+            // Insert data into 'member_application' table
             $stmt = $this->user->getConnection()->prepare("
-                INSERT INTO applications (full_name, email, phone, address, receipt_path)
-                VALUES (:full_name, :email, :phone, :address, :receipt_path)
+                INSERT INTO member_application (
+                    nama, no_kp, taraf_perkahwinan, jantina, agama, bangsa, 
+                    alamat_rumah, poskod, negeri, no_tel_bimbit, no_tel_rumah, 
+                    gaji_bulanan, nama_pewaris, hubungan_pewaris, no_kp_pewaris, 
+                    fee_masuk, modah_syer, receipt_path
+                ) VALUES (
+                    :nama, :no_kp, :taraf_perkahwinan, :jantina, :agama, :bangsa, 
+                    :alamat_rumah, :poskod, :negeri, :no_tel_bimbit, :no_tel_rumah, 
+                    :gaji_bulanan, :nama_pewaris, :hubungan_pewaris, :no_kp_pewaris, 
+                    :fee_masuk, :modah_syer, :receipt_path
+                )
             ");
             $stmt->execute([
-                ':full_name' => $fullName,
-                ':email' => $email,
-                ':phone' => $phone,
-                ':address' => $address,
-                ':receipt_path' => $receiptName
+                ':nama' => $data['nama'],
+                ':no_kp' => $data['no_kp'],
+                ':taraf_perkahwinan' => $data['taraf_perkahwinan'],
+                ':jantina' => $data['jantina'],
+                ':agama' => $data['agama'],
+                ':bangsa' => $data['bangsa'],
+                ':alamat_rumah' => $data['alamat_rumah'],
+                ':poskod' => $data['poskod'],
+                ':negeri' => $data['negeri'],
+                ':no_tel_bimbit' => $data['no_tel_bimbit'],
+                ':no_tel_rumah' => $data['no_tel_rumah'],
+                ':gaji_bulanan' => $data['gaji_bulanan'],
+                ':nama_pewaris' => $data['nama_pewaris'],
+                ':hubungan_pewaris' => $data['hubungan_pewaris'],
+                ':no_kp_pewaris' => $data['no_kp_pewaris'],
+                ':fee_masuk' => $data['fee_masuk'],
+                ':modah_syer' => $data['modah_syer'],
+                ':receipt_path' => $receiptPath
             ]);
 
-            // Success message
+            // Clear session and show success
+            session_destroy();
             echo "<script>
-                alert('You have submitted the member application form. Please kindly wait 2-3 business days.');
+                alert('Permohonan berjaya dihantar.Sila menunggu 2-3 hari bekerja untuk kelulusan.');
                 window.location.href = '/';
             </script>";
         } else {
-            $this->view('users/member_application', ['errors' => $errors]);
+            $this->view('users/member_application_page3', ['errors' => $errors]);
         }
     }
 }
